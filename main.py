@@ -3,11 +3,11 @@ import logging
 import sys
 import os
 
-from aiogram import Bot, Dispatcher, html
+from aiogram import Bot, Dispatcher, html, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart
-from aiogram.types import Message
+from aiogram.filters import CommandStart, Command
+from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from config import BOT_TOKEN
 # Bot token can be obtained via https://t.me/BotFather
 
@@ -28,8 +28,32 @@ async def command_start_handler(message: Message) -> None:
     # and the target chat will be passed to :ref:`aiogram.methods.send_message.SendMessage`
     # method automatically or call API method directly via
     # Bot instance: `bot.send_message(chat_id=message.chat.id, ...)`
-    await message.answer(f"Hello, {html.bold(message.from_user.full_name)}!")
+    kb = [
+        [
+        KeyboardButton(text='Че там'),
+        KeyboardButton(text='Сет'),
 
+        ]
+    ]
+    keyboard = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True, one_time_keyboard=True)
+    await message.answer(
+        f"Hello, {html.bold(message.from_user.full_name)}!, chose your fighter ", reply_markup=keyboard
+    )
+
+
+
+
+@dp.message(Command("help"))
+async def command_help_handler(message: Message) -> None:
+    await message.answer("/help handler called")
+
+@dp.message(F.text == "Че там")
+async def command_che_tam(message: Message) -> None:
+    await message.answer("Сет че там 60 штук суши")
+
+@dp.message(F.text == "Сет")
+async def command_set(message: Message) -> None:
+    await message.answer("че там 60 штук суши")
 
 @dp.message()
 async def echo_handler(message: Message) -> None:
