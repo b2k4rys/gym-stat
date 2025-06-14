@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Request
 import requests
-from config import GOOGLE_CLIENT_ID, CLIENT_SECRET, OAUTH_REDIRECT_URL, BOT_TOKEN
+from config import GOOGLE_CLIENT_ID, CLIENT_SECRET, OAUTH_REDIRECT_URL
 
 from bot import bot  
 from handlers.login import oauth_sessions
 import asyncio
-
+from redis_client import r
 
 app = FastAPI()
 
@@ -14,11 +14,13 @@ async def get_state(request: Request):
 
     code = request.query_params.get("code")
     state = request.query_params.get("state")
+
     if not code:
         return {"error": "No code received"}
 
 
     token_url = "https://oauth2.googleapis.com/token"
+    
 
     payload = {
         "code": code,
@@ -28,7 +30,7 @@ async def get_state(request: Request):
         "grant_type": "authorization_code"
     }
 
-    chat_id = oauth_sessions.get(state)
+    chat_id = r.get(f"oauth:{state}")
     if not chat_id:
         return {"error": "Unknown state"}
     

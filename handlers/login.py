@@ -5,6 +5,8 @@ from aiogram.types import Message, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from urllib.parse import urlencode, urlunparse,  urlparse, ParseResult
 import uuid
+from redis_client import r
+
 
 from config import GOOGLE_CLIENT_ID, OAUTH_REDIRECT_URL
 router = Router()
@@ -17,13 +19,16 @@ async def login_user(message: Message):
 
 
     state = str(uuid.uuid4())
-    oauth_sessions[state] = message.chat.id
+    chat_id = str(message.chat.id)
+    oauth_sessions[state] = str(message.chat.id)
+    r.setex(f"oauth:{state}", 600, chat_id)
+
     base_url = 'https://accounts.google.com/o/oauth2/v2/auth'
     query_params = {
         'client_id': GOOGLE_CLIENT_ID,
         'redirect_uri': OAUTH_REDIRECT_URL,
         'response_type': 'code',
-        'scope': 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events',
+        'scope': 'https://www.googleapis.com/auth/spreadsheets.readonly',
         'state': state,
         'access_type': 'offline',
     }
