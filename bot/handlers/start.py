@@ -2,7 +2,7 @@ from aiogram import Router, F, html
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
-from keyboards.for_che_tam import get_che_tam
+from bot.keyboards.for_che_tam import get_che_tam
 
 router = Router()
 
