@@ -5,14 +5,19 @@ from aiogram.types import Message, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from urllib.parse import urlencode, urlunparse,  urlparse, ParseResult
 import uuid
+
 from config import GOOGLE_CLIENT_ID, OAUTH_REDIRECT_URL
 router = Router()
 
+oauth_sessions = {}
 
 @router.message(Command('login'))
 async def login_user(message: Message):
-    chat_id = str(message.chat.id)
+
+
+
     state = str(uuid.uuid4())
+    oauth_sessions[state] = message.chat.id
     base_url = 'https://accounts.google.com/o/oauth2/v2/auth'
     query_params = {
         'client_id': GOOGLE_CLIENT_ID,
