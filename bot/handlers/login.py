@@ -6,7 +6,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from urllib.parse import urlencode, urlunparse,  urlparse, ParseResult
 import uuid
 from app.core.redis.redis_client import r
-
+import json
 from app.core.configs.config import GOOGLE_CLIENT_ID, OAUTH_REDIRECT_URL
 router = Router()
 
@@ -20,6 +20,10 @@ async def login_user(message: Message):
     state = str(uuid.uuid4())
     chat_id = str(message.chat.id)
     oauth_sessions[state] = str(message.chat.id)
+    user = message.from_user
+    data = {"username": str(user.username), "telegram_id": int(user.id)}
+    json_data = json.dumps(data)
+    r.setex(f"user:{state}", 600, json_data)
     r.setex(f"oauth:{state}", 600, chat_id)
 
     base_url = 'https://accounts.google.com/o/oauth2/v2/auth'

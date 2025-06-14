@@ -4,11 +4,17 @@ import requests
 from app.core.configs.config import GOOGLE_CLIENT_ID, CLIENT_SECRET, OAUTH_REDIRECT_URL
 from bot.bot import bot  
 import asyncio
-
+from app.core.db.models.user import User as UserModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.db.session import get_db
+from fastapi import Depends
+from fastapi.exceptions import HTTPException
+import json
 router = APIRouter()
 
 @router.get("/callback")
-async def get_state(request: Request):
+async def get_state(request: Request, session: AsyncSession = Depends(get_db)):
 
     code = request.query_params.get("code")
     state = request.query_params.get("state")
@@ -32,6 +38,15 @@ async def get_state(request: Request):
     if not chat_id:
         return {"error": "Unknown state"}
     
+    raw = r.get(f"user:{state}")
+    if raw:
+        user_data = json.loads(raw)
+    user = (await session.execute(select(UserModel).filter_by(telegram_id=user_data["telegram_id"]))).scalar_one_or_none()
+    if user is None:
+        user_db = UserModel(username=user_data["username"], telegram_id=user_data["telegram_id"])
+        session.add(user_db)
+        await session.commit()
+        await session.refresh(user_db)
     response = requests.post(token_url, data=payload)
     tokens = response.json()
 
