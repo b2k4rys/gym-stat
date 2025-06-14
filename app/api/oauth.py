@@ -1,15 +1,13 @@
-from fastapi import FastAPI, Request
+from fastapi import APIRouter, Request
+from app.core.redis.redis_client import r
 import requests
-from config import GOOGLE_CLIENT_ID, CLIENT_SECRET, OAUTH_REDIRECT_URL
-
-from bot import bot  
-from handlers.login import oauth_sessions
+from app.core.configs.config import GOOGLE_CLIENT_ID, CLIENT_SECRET, OAUTH_REDIRECT_URL
+from bot.bot import bot  
 import asyncio
-from redis_client import r
 
-app = FastAPI()
+router = APIRouter()
 
-@app.get("/callback")
+@router.get("/callback")
 async def get_state(request: Request):
 
     code = request.query_params.get("code")
@@ -37,6 +35,8 @@ async def get_state(request: Request):
     response = requests.post(token_url, data=payload)
     tokens = response.json()
 
+
+    r.set(f"google_token:{chat_id}", tokens['access_token'])
 
 
     message = f"✅ Successfully logged in!\nAccess token: {tokens['access_token'][:20]}..."

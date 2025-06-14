@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 from aiogram import Bot, Dispatcher
-from config import BOT_TOKEN
+from app.core.configs.config import BOT_TOKEN
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from handlers import echo, start, login

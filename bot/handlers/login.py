@@ -5,10 +5,9 @@ from aiogram.types import Message, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from urllib.parse import urlencode, urlunparse,  urlparse, ParseResult
 import uuid
-from redis_client import r
+from app.core.redis.redis_client import r
 
-
-from config import GOOGLE_CLIENT_ID, OAUTH_REDIRECT_URL
+from app.core.configs.config import GOOGLE_CLIENT_ID, OAUTH_REDIRECT_URL
 router = Router()
 
 oauth_sessions = {}
