@@ -4,7 +4,8 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.types import Integer, String
 
 class Sheets(Base):
+    __tablename__ = "sheets"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     sheets_id: Mapped[int] = mapped_column(Integer, index=True, unique=True)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("usesr.id"), index=True)
+    telegram_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.telegram_id"), index=True)
