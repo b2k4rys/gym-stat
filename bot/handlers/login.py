@@ -94,21 +94,28 @@ async def handle_link(message: Message, state: FSMContext):
             raise ValueError("Could not extract sheet ID")
 
         sheets_id = match.group(1)
+        print(f"SHEETS ID = {sheets_id}")
 
         async for session in get_db():
             user = message.from_user
-            if (await session.execute(select(UserModel).filter_by(telegram_id=int(user.id)))).scalar_one_or_none() is None:
+            stmt = select(UserModel).filter_by(telegram_id = int(user.id))
+            res = await session.execute(stmt)
+            user_db = res.scalar_one_or_none()
+
+            if user_db is None:
                 await message.answer("User not found in the database.")
                 return
+            print(f"USER ID = {user.id}")
 
-            sheets_db = Sheets(telegram_id=int(user.id), sheets_id=int(sheets_id))
+            sheets_db = Sheets(telegram_id=int(user.id), sheets_id=str(sheets_id))
             session.add(sheets_db)
             await session.commit()
             await session.refresh(sheets_db)
 
         await message.answer("Successfully linked sheets")
         await state.clear()
-
     except Exception as e:
+        print(f"ERROR: {e}")
         await message.answer("Invalid Google Sheets link. Please try again.")
+
 
