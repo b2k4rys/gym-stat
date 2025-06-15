@@ -1,2 +1,4 @@
 .env
 alembic.ini
+service_account.json
+.gitignore
