@@ -1,25 +1,20 @@
 from aiogram import Router, F, html
 from aiogram.filters import CommandStart
 from aiogram.types import Message
-
-from bot.keyboards.for_che_tam import get_che_tam
+from aiogram.types import FSInputFile
 
 router = Router()
 
 @router.message(CommandStart())
 async def start_message(message: Message):
+    mail = "bekarys@carbon-scene-462517-h0.iam.gserviceaccount.com"
+    image = FSInputFile("bot/media/instructions.png")  
+
+
     await message.answer(
-        f"Hello, {html.bold(message.from_user.full_name)}!, chose your fighter ", reply_markup=get_che_tam()
+        f"Hello, {html.bold(message.from_user.full_name)}! To use this bot you need to share your google spreadsheet with this mail {mail} and login using /login command"
     )
+    await message.answer_photo(image)
 
 
-@router.message(F.text == "Че там")
-async def command_che_tam(message: Message) -> None:
-    await message.answer("Сет че там 60 штук суши")
 
-
-@router.message(F.text == "Сет")
-async def answer_set(message: Message):
-    await message.answer("Хороший выбор чемпион")
-
-    

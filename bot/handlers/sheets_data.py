@@ -1,4 +1,4 @@
-
+import gspread 
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
@@ -6,10 +6,9 @@ from app.core.redis.redis_client import r
 from app.core.db.session import get_db
 from app.core.db.models.sheets import Sheets
 from sqlalchemy import select
-import requests
+
 router = Router()
-import httpx
-import gspread
+
 
 gc = gspread.service_account("/Users/b2k4rys/Desktop/gym stat /app/core/configs/service_account.json")
 
@@ -61,7 +60,7 @@ def get_the_results(worksheets, index):
     return results
 
 
-@router.message(Command("get_last_tab_data"))
+@router.message(Command("get_last_workout_data"))
 async def get_last_tab_data(message: Message):
     user = message.from_user
     chat_id = int(message.chat.id)
@@ -98,10 +97,10 @@ async def get_last_tab_data(message: Message):
 
     for exercise in latest_results:
         if not latest_results[exercise]:
-            res += f"{exercise} has not been performed in the last workout.\n"
+            res += f"{exercise} - has not been performed in the last workout.\n"
             continue
         if not prev_workout[exercise]:
-            res += f"{exercise} has not been performed in the previous workout.\n"
+            res += f"{exercise} - has not been performed in the previous workout.\n"
             continue
 
         try:
@@ -115,7 +114,7 @@ async def get_last_tab_data(message: Message):
 
             percentage_change = ((latest_volume - prev_volume) / prev_volume) * 100
             direction = "increased" if percentage_change > 0 else "decreased"
-            res += f"{exercise} {direction} by {abs(percentage_change):.1f}%\n"
+            res += f"{exercise} - {direction} by {abs(percentage_change):.1f}%\n"
         except Exception as e:
             res += f"Error comparing {exercise}: {e}\n"
 
