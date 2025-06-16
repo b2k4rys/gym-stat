@@ -13,61 +13,22 @@ import gspread
 
 gc = gspread.service_account("/Users/b2k4rys/Desktop/gym stat /app/core/configs/service_account.json")
 
+def get_the_results(worksheets, index):
 
-
-@router.message(Command("get_last_tab_data"))
-async def get_last_tab_data(message: Message):
-    user = message.from_user
-    chat_id = int(message.chat.id)
-    
-    auth_token = r.get(f"google_token:{chat_id}")
-
-    if not auth_token:
-        await message.answer("Not logged in, need auth_token") 
-        return
-    print(f"HERE IS TOKEN {auth_token}")
-
-    async for session in get_db():
-        stmt = select(Sheets).filter_by(telegram_id=int(user.id))
-        sheets_obj = (await session.execute(stmt)).scalar_one_or_none()
-        if not sheets_obj:
-            await message.answer("No linked sheets")
-            return
-        sheets_id = sheets_obj.sheets_id
-
-    # url = f"https://sheets.googleapis.com/v4/spreadsheets/{sheets_id}"
-    # headers = {"Authorization": f"Bearer {auth_token}"}
-
-    # async with httpx.AsyncClient() as client:
-    #     response = await client.get(url, headers=headers)
-    #     if response.status_code != 200:
-    #         await message.answer("Failed to fetch sheet info.")
-    #         return
-    #     data = response.json()
-    #     sheet_titles = [sheet["properties"]["title"] for sheet in data["sheets"]]
-    sh = gc.open_by_key(str(sheets_id))
-    worksheets = sh.worksheets()
-    last_worksheet = worksheets[-1]
-
+    last_worksheet = worksheets[index]
     results = dict()
 
-
-
-    
 
     values_list = last_worksheet.col_values(1)
 
 
     for i in range(1, len(values_list)):
-        print(f"{i} COLUMN is {values_list[i]}")
-
         if not values_list[i]:
             continue
 
         results[values_list[i]] = list()
         row = last_worksheet.row_values(i+1)
-        print(f"{i+1} ROW IS {row}")
-
+ 
         if not row:
             continue
 
@@ -96,11 +57,70 @@ async def get_last_tab_data(message: Message):
             except Exception as e:
                 print(f"Error parsing set '{set_str}': {e}")
             continue
+        results[exercise] = total_volume
+    return results
 
-    print(f"{exercise.strip()}: {total_volume:.1f} volume")
+
+@router.message(Command("get_last_tab_data"))
+async def get_last_tab_data(message: Message):
+    user = message.from_user
+    chat_id = int(message.chat.id)
+    
+    auth_token = r.get(f"google_token:{chat_id}")
+
+    if not auth_token:
+        await message.answer("Not logged in, need auth_token") 
+        return
+    print(f"HERE IS TOKEN {auth_token}")
+
+    async for session in get_db():
+        stmt = select(Sheets).filter_by(telegram_id=int(user.id))
+        sheets_obj = (await session.execute(stmt)).scalar_one_or_none()
+        if not sheets_obj:
+            await message.answer("No linked sheets")
+            return
+        sheets_id = sheets_obj.sheets_id
+
+    
+    sh = gc.open_by_key(str(sheets_id))    
+    worksheets = sh.worksheets()
+
+    latest_results = get_the_results(worksheets, -1)
+    prev_workout = get_the_results(worksheets, -2)
+
+
+    res = ""
+
+    print(latest_results)
+
+    print(prev_workout)
+    res = ""
+
+    for exercise in latest_results:
+        if not latest_results[exercise]:
+            res += f"{exercise} has not been performed in the last workout.\n"
+            continue
+        if not prev_workout[exercise]:
+            res += f"{exercise} has not been performed in the previous workout.\n"
+            continue
+
+        try:
+            latest_volume = latest_results[exercise]
+            prev_volume = prev_workout[exercise]
+
+
+            if prev_volume == 0:
+                res += f"{exercise}: No previous volume to compare.\n"
+                continue
+
+            percentage_change = ((latest_volume - prev_volume) / prev_volume) * 100
+            direction = "increased" if percentage_change > 0 else "decreased"
+            res += f"{exercise} {direction} by {abs(percentage_change):.1f}%\n"
+        except Exception as e:
+            res += f"Error comparing {exercise}: {e}\n"
 
 
 
-    await message.answer(last_worksheet.title)
+    await message.answer(res)
     
 
