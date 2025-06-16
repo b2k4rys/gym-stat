@@ -51,19 +51,10 @@ async def get_last_tab_data(message: Message):
 
     results = dict()
 
-    cols = ["B", "C", "D", "E"]
+
 
     
-    # for c in range(2, 20):
-    #     exercise = last_worksheet.acell(f"A{c}")
 
-
-    #     if exercise is not None:
-    #         results[exercise.value] = []
-    #         for col in cols:
-    #             res = last_worksheet.acell(f"{col}{c}")
-    #             if res is not None:
-    #                 results[exercise.value].append(res.value)
     values_list = last_worksheet.col_values(1)
 
 
@@ -78,13 +69,36 @@ async def get_last_tab_data(message: Message):
         print(f"{i+1} ROW IS {row}")
 
         if not row:
-            
             continue
 
         for j in range(1, len(row)):
             results[values_list[i]].append(row[j])
+    
+    for exercise, sets in results.items():
+        if not sets:
+            continue  
 
-    print(results)
+        total_volume = 0
+        for set_str in sets:
+            set_str = set_str.strip()
+
+            if '-' not in set_str:
+                continue  
+
+            try:
+      
+                weight_part, reps_part = map(str.strip, set_str.split('-', 1))
+
+                weight = float(''.join(c for c in weight_part if c.isdigit() or c == '.'))
+                reps = int(''.join(c for c in reps_part if c.isdigit()))
+
+                total_volume += weight * reps
+            except Exception as e:
+                print(f"Error parsing set '{set_str}': {e}")
+            continue
+
+    print(f"{exercise.strip()}: {total_volume:.1f} volume")
+
 
 
     await message.answer(last_worksheet.title)
