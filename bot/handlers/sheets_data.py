@@ -49,6 +49,44 @@ async def get_last_tab_data(message: Message):
     worksheets = sh.worksheets()
     last_worksheet = worksheets[-1]
 
+    results = dict()
+
+    cols = ["B", "C", "D", "E"]
+
+    
+    # for c in range(2, 20):
+    #     exercise = last_worksheet.acell(f"A{c}")
+
+
+    #     if exercise is not None:
+    #         results[exercise.value] = []
+    #         for col in cols:
+    #             res = last_worksheet.acell(f"{col}{c}")
+    #             if res is not None:
+    #                 results[exercise.value].append(res.value)
+    values_list = last_worksheet.col_values(1)
+
+
+    for i in range(1, len(values_list)):
+        print(f"{i} COLUMN is {values_list[i]}")
+
+        if not values_list[i]:
+            continue
+
+        results[values_list[i]] = list()
+        row = last_worksheet.row_values(i+1)
+        print(f"{i+1} ROW IS {row}")
+
+        if not row:
+            
+            continue
+
+        for j in range(1, len(row)):
+            results[values_list[i]].append(row[j])
+
+    print(results)
+
+
     await message.answer(last_worksheet.title)
     
 
